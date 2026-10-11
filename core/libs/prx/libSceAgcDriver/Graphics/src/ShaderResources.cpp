@@ -277,12 +277,12 @@ struct ImageMemoEntry {
 };
 
 constexpr std::size_t ImageMemoSlots = 1024;
-thread_local std::unique_ptr<std::array<ImageMemoEntry, ImageMemoSlots>> imageMemo;
+thread_local std::array<ImageMemoEntry, ImageMemoSlots>* imageMemo = nullptr;
 
 ImageMemoEntry& imageMemoSlot(std::span<const std::uint32_t> words) {
-    if (imageMemo == nullptr) imageMemo = std::make_unique<std::array<ImageMemoEntry, ImageMemoSlots>>();
+    auto& memo = ShaderRecompiler::ThreadOwned(imageMemo);
     const auto hash = hashWords(14695981039346656037ull, words.data(), words.size());
-    return (*imageMemo)[(hash ^ (hash >> 29u)) % ImageMemoSlots];
+    return memo[(hash ^ (hash >> 29u)) % ImageMemoSlots];
 }
 
 const ImageMemoEntry& decodedImage(VkDevice device, std::span<const std::uint32_t> words) {
