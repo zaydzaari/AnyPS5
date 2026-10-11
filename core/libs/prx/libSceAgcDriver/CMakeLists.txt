@@ -271,6 +271,14 @@ if(BUILD_TESTING)
         set_tests_properties(agc_profile_output PROPERTIES ENVIRONMENT_MODIFICATION
                 "PATH=path_list_prepend:$<TARGET_FILE_DIR:libc>")
     endif()
+
+    if(MINGW)
+        set(threadLocalObjects "${CMAKE_CURRENT_BINARY_DIR}/thread-local-objects-$<CONFIG>.txt")
+        file(GENERATE OUTPUT "${threadLocalObjects}" CONTENT "$<JOIN:$<TARGET_OBJECTS:libSceAgcDriver>,\n>\n$<JOIN:$<TARGET_OBJECTS:shader_recompiler_agc_driver>,\n>\n")
+        add_test(NAME agc_driver_thread_local_destructors COMMAND ${CMAKE_COMMAND} -DNM=${CMAKE_NM}
+                "-DOBJECT_LIST=${threadLocalObjects}"
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/ThreadLocalDestructors.cmake)
+    endif()
 endif()
 
 if(WIN32)
